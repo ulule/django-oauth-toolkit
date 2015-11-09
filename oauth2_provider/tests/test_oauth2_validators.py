@@ -3,6 +3,7 @@ from django.test import TestCase
 import mock
 from oauthlib.common import Request
 
+from .. import constants
 from ..oauth2_validators import OAuth2Validator
 from ..models import get_application_model
 from ..compat import get_user_model
@@ -19,7 +20,7 @@ class TestOAuth2Validator(TestCase):
         self.validator = OAuth2Validator()
         self.application = AppModel.objects.create(
             client_id='client_id', client_secret='client_secret', user=self.user,
-            client_type=AppModel.CLIENT_PUBLIC, authorization_grant_type=AppModel.GRANT_PASSWORD)
+            client_type=constants.CLIENT_PUBLIC, grant_types=constants.GRANT_PASSWORD)
 
     def tearDown(self):
         self.application.delete()
@@ -81,7 +82,7 @@ class TestOAuth2Validator(TestCase):
         self.assertTrue(self.validator.authenticate_client_id('client_id', self.request))
 
     def test_authenticate_client_id_fail(self):
-        self.application.client_type = AppModel.CLIENT_CONFIDENTIAL
+        self.application.client_type = constants.CLIENT_CONFIDENTIAL
         self.application.save()
         self.assertFalse(self.validator.authenticate_client_id('client_id', self.request))
         self.assertFalse(self.validator.authenticate_client_id('fake_client_id', self.request))
@@ -95,7 +96,7 @@ class TestOAuth2Validator(TestCase):
         self.assertTrue(self.validator.client_authentication_required(self.request))
         self.request.client_secret = ''
         self.assertFalse(self.validator.client_authentication_required(self.request))
-        self.application.client_type = AppModel.CLIENT_CONFIDENTIAL
+        self.application.client_type = constants.CLIENT_CONFIDENTIAL
         self.application.save()
         self.request.client = ''
         self.assertTrue(self.validator.client_authentication_required(self.request))

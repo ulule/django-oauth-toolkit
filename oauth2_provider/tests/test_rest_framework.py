@@ -10,6 +10,7 @@ try:
 except ImportError:
     import unittest
 
+from .. import constants
 from .test_utils import TestCaseUtils
 from ..models import AccessToken, get_application_model
 from ..settings import oauth2_settings
@@ -82,8 +83,8 @@ class TestOAuth2Authentication(BaseTest):
             name="Test Application",
             redirect_uris="http://localhost http://example.com http://example.it",
             user=self.dev_user,
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=constants.CLIENT_CONFIDENTIAL,
+            grant_types=[constants.GRANT_AUTHORIZATION_CODE],
         )
 
         self.access_token = AccessToken.objects.create(

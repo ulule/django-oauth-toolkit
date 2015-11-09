@@ -13,6 +13,7 @@ from django.views.generic import View
 
 from oauthlib.oauth2 import BackendApplicationServer
 
+from .. import constants
 from ..models import get_application_model, AccessToken
 from ..oauth2_backends import OAuthLibCore
 from ..oauth2_validators import OAuth2Validator
@@ -42,8 +43,8 @@ class BaseTest(TestCaseUtils, TestCase):
         self.application = Application(
             name="test_client_credentials_app",
             user=self.dev_user,
-            client_type=Application.CLIENT_PUBLIC,
-            authorization_grant_type=Application.GRANT_CLIENT_CREDENTIALS,
+            client_type=constants.CLIENT_PUBLIC,
+            grant_types=constants.GRANT_CLIENT_CREDENTIALS,
         )
         self.application.save()
 
@@ -159,8 +160,8 @@ class TestClientResourcePasswordBased(BaseTest):
         self.application = Application(
             name="test_client_credentials_app",
             user=self.dev_user,
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            authorization_grant_type=Application.GRANT_PASSWORD,
+            client_type=constants.CLIENT_CONFIDENTIAL,
+            grant_types=[constants.GRANT_PASSWORD],
         )
         self.application.save()
 

@@ -6,6 +6,7 @@ from django.test import TestCase, RequestFactory
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 
+from .. import constants
 from ..compat import urlencode, get_user_model
 from ..models import get_application_model, AccessToken, RefreshToken
 from ..settings import oauth2_settings
@@ -27,8 +28,8 @@ class BaseTest(TestCaseUtils, TestCase):
             name="Test Application",
             redirect_uris="http://localhost http://example.com http://example.it",
             user=self.dev_user,
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=constants.CLIENT_CONFIDENTIAL,
+            grant_types=[constants.GRANT_AUTHORIZATION_CODE],
         )
         self.application.save()
 
@@ -65,8 +66,8 @@ class TestRevocationView(BaseTest):
             name="Test Application",
             redirect_uris="http://localhost http://example.com http://example.it",
             user=self.dev_user,
-            client_type=Application.CLIENT_PUBLIC,
-            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=constants.CLIENT_PUBLIC,
+            grant_types=[constants.GRANT_AUTHORIZATION_CODE],
         )
         public_app.save()
 

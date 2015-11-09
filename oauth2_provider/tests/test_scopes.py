@@ -7,6 +7,8 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
 
 from .test_utils import TestCaseUtils
+
+from .. import constants
 from ..compat import urlparse, parse_qs, get_user_model, urlencode
 from ..models import get_application_model, Grant, AccessToken
 from ..settings import oauth2_settings
@@ -49,8 +51,8 @@ class BaseTest(TestCaseUtils, TestCase):
             name="Test Application",
             redirect_uris="http://localhost http://example.com http://example.it",
             user=self.dev_user,
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=constants.CLIENT_CONFIDENTIAL,
+            grant_types=[constants.GRANT_AUTHORIZATION_CODE],
         )
         self.application.save()
 

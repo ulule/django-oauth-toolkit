@@ -5,6 +5,7 @@ from django.utils.timezone import now, timedelta
 from django.conf.global_settings import MIDDLEWARE_CLASSES
 from django.http import HttpResponse
 
+from .. import constants
 from ..compat import get_user_model
 from ..models import get_application_model
 from ..models import AccessToken
@@ -23,8 +24,8 @@ class BaseTest(TestCase):
         self.user = UserModel.objects.create_user("user", "test@user.com", "123456")
         self.app = ApplicationModel.objects.create(
             name='app',
-            client_type=ApplicationModel.CLIENT_CONFIDENTIAL,
-            authorization_grant_type=ApplicationModel.GRANT_CLIENT_CREDENTIALS,
+            client_type=constants.CLIENT_CONFIDENTIAL,
+            grant_types=[constants.GRANT_CLIENT_CREDENTIALS],
             user=self.user
         )
         self.token = AccessToken.objects.create(user=self.user,
