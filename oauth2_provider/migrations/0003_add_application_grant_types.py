@@ -24,6 +24,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name='application',
+            name='authorization_grant_type',
+            field=models.CharField(blank=True, max_length=32, null=True, choices=[(b'authorization-code', 'Authorization code'), (b'implicit', 'Implicit'), (b'password', 'Resource owner password-based'), (b'client-credentials', 'Client credentials')]),
+        ),
         migrations.AddField(
             model_name='application',
             name='grant_types',

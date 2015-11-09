@@ -49,7 +49,9 @@ class AbstractApplication(models.Model):
     # Deprecated: now use grant_types
     # Kept to avoid killing data.
     authorization_grant_type = models.CharField(max_length=32,
-                                                choices=constants.GRANT_TYPES)
+                                                choices=constants.GRANT_TYPES,
+                                                null=True,
+                                                blank=True)
 
     client_secret = models.CharField(max_length=255, blank=True,
                                      default=generate_client_secret, db_index=True)
