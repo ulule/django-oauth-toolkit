@@ -10,19 +10,12 @@ from django.contrib.auth import authenticate
 from django.core.exceptions import ObjectDoesNotExist
 from oauthlib.oauth2 import RequestValidator
 
+from . import constants
 from .compat import unquote_plus
 from .models import Grant, AccessToken, RefreshToken, get_application_model, AbstractApplication
 from .settings import oauth2_settings
 
 log = logging.getLogger('oauth2_provider')
-
-GRANT_TYPE_MAPPING = {
-    'authorization_code': (AbstractApplication.GRANT_AUTHORIZATION_CODE,),
-    'password': (AbstractApplication.GRANT_PASSWORD,),
-    'client_credentials': (AbstractApplication.GRANT_CLIENT_CREDENTIALS,),
-    'refresh_token': (AbstractApplication.GRANT_AUTHORIZATION_CODE, AbstractApplication.GRANT_PASSWORD,
-                      AbstractApplication.GRANT_CLIENT_CREDENTIALS)
-}
 
 
 class OAuth2Validator(RequestValidator):
@@ -155,7 +148,7 @@ class OAuth2Validator(RequestValidator):
 
         self._load_application(request.client_id, request)
         if request.client:
-            return request.client.client_type == AbstractApplication.CLIENT_CONFIDENTIAL
+            return request.client.client_type == constants.CLIENT_CONFIDENTIAL
 
         return super(OAuth2Validator, self).client_authentication_required(request,
                                                                            *args, **kwargs)
@@ -185,7 +178,7 @@ class OAuth2Validator(RequestValidator):
         """
         if self._load_application(client_id, request) is not None:
             log.debug("Application %s has type %s" % (client_id, request.client.client_type))
-            return request.client.client_type != AbstractApplication.CLIENT_CONFIDENTIAL
+            return request.client.client_type != constants.CLIENT_CONFIDENTIAL
         return False
 
     def confirm_redirect_uri(self, client_id, code, redirect_uri, client, *args, **kwargs):
@@ -250,20 +243,33 @@ class OAuth2Validator(RequestValidator):
         """
         Validate both grant_type is a valid string and grant_type is allowed for current workflow
         """
-        assert(grant_type in GRANT_TYPE_MAPPING)  # mapping misconfiguration
-        return request.client.authorization_grant_type in GRANT_TYPE_MAPPING[grant_type]
+        if grant_type not in constants.GRANT_TYPE_MAPPING:
+            return False
+
+        for grant in client.grant_types:
+            if grant in constants.GRANT_TYPE_MAPPING[grant_type]:
+                return True
+
+        return False
 
     def validate_response_type(self, client_id, response_type, client, request, *args, **kwargs):
         """
         We currently do not support the Authorization Endpoint Response Types registry as in
         rfc:`8.4`, so validate the response_type only if it matches 'code' or 'token'
         """
-        if response_type == 'code':
-            return client.authorization_grant_type == AbstractApplication.GRANT_AUTHORIZATION_CODE
-        elif response_type == 'token':
-            return client.authorization_grant_type == AbstractApplication.GRANT_IMPLICIT
-        else:
+        response_types = {
+            'code': constants.GRANT_AUTHORIZATION_CODE,
+            'token': constants.GRANT_IMPLICIT,
+        }
+
+        if response_type not in response_types:
             return False
+
+        for grant in client.grant_types:
+            if grant in response_types[response_type]:
+                return True
+
+        return False
 
     def validate_scopes(self, client_id, scopes, client, request, *args, **kwargs):
         """
