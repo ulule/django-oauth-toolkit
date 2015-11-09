@@ -1,0 +1,4 @@
+-r optional.txt
+coverage
+mock==1.0.1
+django>=1.4
