@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.test import TestCase, RequestFactory
 from django.utils import timezone
 
+from .. import constants
 from ..decorators import protected_resource, rw_protected_resource
 from ..settings import oauth2_settings
 from ..models import get_application_model, AccessToken
@@ -26,8 +27,8 @@ class TestProtectedResourceDecorator(TestCase, TestCaseUtils):
         self.application = Application.objects.create(
             name="test_client_credentials_app",
             user=self.user,
-            client_type=Application.CLIENT_PUBLIC,
-            authorization_grant_type=Application.GRANT_CLIENT_CREDENTIALS,
+            client_type=constants.CLIENT_PUBLIC,
+            grant_types=[constants.GRANT_CLIENT_CREDENTIALS],
         )
 
         self.access_token = AccessToken.objects.create(

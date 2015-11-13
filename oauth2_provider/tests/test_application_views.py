@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
+from .. import constants
 from ..models import get_application_model
 from ..compat import get_user_model
 
@@ -28,9 +29,9 @@ class TestApplicationRegistrationView(BaseTest):
             'name': 'Foo app',
             'client_id': 'client_id',
             'client_secret': 'client_secret',
-            'client_type': Application.CLIENT_CONFIDENTIAL,
+            'client_type': constants.CLIENT_CONFIDENTIAL,
             'redirect_uris': 'http://example.com',
-            'authorization_grant_type': Application.GRANT_AUTHORIZATION_CODE
+            'grant_types': [constants.GRANT_AUTHORIZATION_CODE],
         }
 
         response = self.client.post(reverse('oauth2_provider:register'), form_data)
@@ -44,7 +45,7 @@ class TestApplicationViews(BaseTest):
     def _create_application(self, name, user):
         app = Application.objects.create(
             name=name, redirect_uris="http://example.com",
-            client_type=Application.CLIENT_CONFIDENTIAL, authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=constants.CLIENT_CONFIDENTIAL, grant_types=[constants.GRANT_AUTHORIZATION_CODE],
             user=user)
         return app
 

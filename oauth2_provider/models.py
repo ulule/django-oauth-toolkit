@@ -8,6 +8,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 from django.core.exceptions import ImproperlyConfigured
 
+from separatedvaluesfield.models import SeparatedValuesField
+
+from . import constants
 from .settings import oauth2_settings
 from .compat import AUTH_USER_MODEL, parse_qsl, urlparse, get_model
 from .generators import generate_client_secret, generate_client_id
@@ -35,52 +38,43 @@ class AbstractApplication(models.Model):
                             the registration process as described in :rfc:`2.2`
     * :attr:`name` Friendly name for the Application
     """
-    CLIENT_CONFIDENTIAL = 'confidential'
-    CLIENT_PUBLIC = 'public'
-    CLIENT_TYPES = (
-        (CLIENT_CONFIDENTIAL, _('Confidential')),
-        (CLIENT_PUBLIC, _('Public')),
-    )
-
-    GRANT_AUTHORIZATION_CODE = 'authorization-code'
-    GRANT_IMPLICIT = 'implicit'
-    GRANT_PASSWORD = 'password'
-    GRANT_CLIENT_CREDENTIALS = 'client-credentials'
-    GRANT_TYPES = (
-        (GRANT_AUTHORIZATION_CODE, _('Authorization code')),
-        (GRANT_IMPLICIT, _('Implicit')),
-        (GRANT_PASSWORD, _('Resource owner password-based')),
-        (GRANT_CLIENT_CREDENTIALS, _('Client credentials')),
-    )
-
     client_id = models.CharField(max_length=100, unique=True,
                                  default=generate_client_id, db_index=True)
     user = models.ForeignKey(AUTH_USER_MODEL, related_name="%(app_label)s_%(class)s")
     help_text = _("Allowed URIs list, space separated")
     redirect_uris = models.TextField(help_text=help_text,
                                      validators=[validate_uris], blank=True)
-    client_type = models.CharField(max_length=32, choices=CLIENT_TYPES)
+    client_type = models.CharField(max_length=32, choices=constants.CLIENT_TYPES)
+
+    # Deprecated: now use grant_types
+    # Kept to avoid killing data.
     authorization_grant_type = models.CharField(max_length=32,
-                                                choices=GRANT_TYPES)
+                                                choices=constants.GRANT_TYPES,
+                                                null=True,
+                                                blank=True)
+
     client_secret = models.CharField(max_length=255, blank=True,
                                      default=generate_client_secret, db_index=True)
     name = models.CharField(max_length=255, blank=True)
     skip_authorization = models.BooleanField(default=False)
+
+    grant_types = SeparatedValuesField(
+        verbose_name=_('grant types'),
+        max_length=150,
+        token=',',
+        choices=constants.GRANT_TYPES,
+        default=[constants.GRANT_PASSWORD])
 
     class Meta:
         abstract = True
 
     @property
     def default_redirect_uri(self):
-        """
-        Returns the default redirect_uri extracting the first item from
-        the :attr:`redirect_uris` string
-        """
         if self.redirect_uris:
             return self.redirect_uris.split().pop(0)
 
-        assert False, "If you are using implicit, authorization_code" \
-                      "or all-in-one grant_type, you must define " \
+        assert False, "If you are using implicit, authorization_code " \
+                      "grant_type, you must define " \
                       "redirect_uris field in your Application model"
 
     def redirect_uri_allowed(self, uri):
@@ -107,12 +101,17 @@ class AbstractApplication(models.Model):
 
     def clean(self):
         from django.core.exceptions import ValidationError
-        if not self.redirect_uris \
-            and self.authorization_grant_type \
-            in (AbstractApplication.GRANT_AUTHORIZATION_CODE,
-                AbstractApplication.GRANT_IMPLICIT):
-            error = _('Redirect_uris could not be empty with {0} grant_type')
-            raise ValidationError(error.format(self.authorization_grant_type))
+
+        redirect_grants = [
+            constants.GRANT_AUTHORIZATION_CODE,
+            constants.GRANT_IMPLICIT,
+        ]
+
+        if not self.redirect_uris:
+            for grant_type in self.grant_types:
+                if grant_type in redirect_grants:
+                    error = _('Redirect_uris could not be empty with {0} grant_type')
+                    raise ValidationError(error.format(grant_type))
 
     def get_absolute_url(self):
         return reverse('oauth2_provider:detail', args=[str(self.id)])

@@ -11,6 +11,7 @@ from django.test.utils import override_settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
+from .. import constants
 from ..models import get_application_model, Grant, AccessToken, RefreshToken
 from ..compat import get_user_model
 
@@ -29,8 +30,8 @@ class TestModels(TestCase):
             name="test_app",
             redirect_uris="http://localhost http://example.com http://example.it",
             user=self.user,
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=constants.CLIENT_CONFIDENTIAL,
+            grant_types=[constants.GRANT_AUTHORIZATION_CODE],
         )
 
         access_token = AccessToken(
@@ -52,8 +53,8 @@ class TestModels(TestCase):
             name="test_app",
             redirect_uris="",
             user=self.user,
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=constants.CLIENT_CONFIDENTIAL,
+            grant_types=[constants.GRANT_AUTHORIZATION_CODE],
         )
 
         self.assertRaises(ValidationError, app.full_clean)
@@ -63,8 +64,8 @@ class TestModels(TestCase):
             name="test_app",
             redirect_uris="",
             user=self.user,
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            authorization_grant_type=Application.GRANT_IMPLICIT,
+            client_type=constants.CLIENT_CONFIDENTIAL,
+            grant_types=[constants.GRANT_IMPLICIT],
         )
 
         self.assertRaises(ValidationError, app.full_clean)
@@ -73,8 +74,8 @@ class TestModels(TestCase):
         app = Application(
             redirect_uris="",
             user=self.user,
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            authorization_grant_type=Application.GRANT_IMPLICIT,
+            client_type=constants.CLIENT_CONFIDENTIAL,
+            grant_types=[constants.GRANT_IMPLICIT],
         )
         self.assertEqual("%s" % app, app.client_id)
 
@@ -124,8 +125,8 @@ class TestAccessTokenModel(TestCase):
             name="test_app",
             redirect_uris="http://localhost http://example.com http://example.it",
             user=self.user,
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=constants.CLIENT_CONFIDENTIAL,
+            grant_types=[constants.GRANT_AUTHORIZATION_CODE],
         )
         access_token = AccessToken.objects.create(token="test_token", application=app, expires=timezone.now())
         self.assertIsNone(access_token.user)

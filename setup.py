@@ -20,9 +20,9 @@ version = get_version('oauth2_provider')
 LONG_DESCRIPTION = open('README.rst').read()
 
 setup(
-    name="django-oauth-toolkit",
+    name="django-oauth-toolkit-fork",
     version=version,
-    description="OAuth2 goodies for Django",
+    description="Fork of django-oauth-toolkit",
     long_description=LONG_DESCRIPTION,
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -44,7 +44,7 @@ setup(
     keywords='django oauth oauth2 oauthlib',
     author="Federico Frenguelli, Massimiliano Pippi",
     author_email='synasius@gmail.com, mpippi@gmail.com',
-    url='https://github.com/evonove/django-oauth-toolkit',
+    url='https://github.com/ulule/django-oauth-toolkit',
     license='BSD',
     packages=find_packages(),
     include_package_data=True,
@@ -54,6 +54,7 @@ setup(
         'django-braces>=1.2.2',
         'oauthlib==1.0.1',
         'six',
+        'django-separatedvaluesfield>=0.3.2',
     ],
     zip_safe=False,
 )

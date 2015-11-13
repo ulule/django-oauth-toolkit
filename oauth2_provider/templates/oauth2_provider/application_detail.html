@@ -8,7 +8,7 @@
 
         <ul class="unstyled">
             <li>
-                <p><b>{% trans "Client id" %}</b></p>
+                <p><b>{% trans "Client ID" %}</b></p>
                 <input class="input-block-level" type="text" value="{{ application.client_id }}" readonly>
             </li>
 
@@ -23,12 +23,12 @@
             </li>
 
             <li>
-                <p><b>{% trans "Authorization Grant Type" %}</b></p>
-                <p>{{ application.authorization_grant_type }}</p>
+                <p><b>{% trans "Authorization Grant Types" %}</b></p>
+                <p>{{ application.grant_types }}</p>
             </li>
 
             <li>
-                <p><b>{% trans "Redirect Uris" %}</b></p>
+                <p><b>{% trans "Redirect URIs" %}</b></p>
                 <textarea class="input-block-level" readonly>{{ application.redirect_uris }}</textarea>
             </li>
         </ul>

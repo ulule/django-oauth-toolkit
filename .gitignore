@@ -45,3 +45,6 @@ _build
 
 # Sqlite database files
 *.sqlite
+
+.venv
+.env

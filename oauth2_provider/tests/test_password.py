@@ -5,6 +5,7 @@ import json
 from django.test import TestCase, RequestFactory
 from django.core.urlresolvers import reverse
 
+from .. import constants
 from ..models import get_application_model
 from ..settings import oauth2_settings
 from ..views import ProtectedResourceView
@@ -31,8 +32,8 @@ class BaseTest(TestCaseUtils, TestCase):
         self.application = Application(
             name="Test Password Application",
             user=self.dev_user,
-            client_type=Application.CLIENT_PUBLIC,
-            authorization_grant_type=Application.GRANT_PASSWORD,
+            client_type=constants.CLIENT_PUBLIC,
+            grant_types=[constants.GRANT_PASSWORD],
         )
         self.application.save()
 
