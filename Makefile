@@ -4,3 +4,6 @@
 
 test: .venv
 	. .venv/bin/activate && coverage run -a runtests.py
+
+release:
+	python setup.py sdist register upload -s
