@@ -5,8 +5,8 @@ import json
 import datetime
 import mock
 
-from django.test import TestCase, RequestFactory
 from django.core.urlresolvers import reverse
+from django.test import TestCase, RequestFactory
 from django.utils import timezone
 
 from .. import constants
@@ -945,6 +945,43 @@ class TestAuthorizationCodeTokenView(BaseTest):
         }
         auth_headers = self.get_basic_auth_header(self.application.client_id, self.application.client_secret)
 
+        response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data, **auth_headers)
+        self.assertEqual(response.status_code, 200)
+
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content['token_type'], "Bearer")
+        self.assertEqual(content['scope'], "read write")
+        self.assertEqual(content['expires_in'], oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS)
+
+    def test_code_exchange_query_string(self):
+        """
+        Tests code exchange succeed when redirect uri matches the one used for code request
+        """
+        self.client.login(username="test_user", password="123456")
+        self.application.redirect_uris = "http://example.com"
+        self.application.save()
+
+        # retrieve a valid authorization code
+        authcode_data = {
+            'client_id': self.application.client_id,
+            'state': 'random_state_string',
+            'scope': 'read write',
+            'redirect_uri': 'http://example.com',
+            'response_type': 'code',
+            'allow': True,
+        }
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=authcode_data)
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        authorization_code = query_dict['code'].pop()
+
+        # exchange authorization code for a valid access token
+        token_request_data = {
+            'grant_type': 'authorization_code',
+            'code': authorization_code,
+            'redirect_uri': 'http://example.com?bar=baz&foo=bar'
+        }
+
+        auth_headers = self.get_basic_auth_header(self.application.client_id, self.application.client_secret)
         response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data, **auth_headers)
         self.assertEqual(response.status_code, 200)
 

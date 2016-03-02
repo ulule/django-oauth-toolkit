@@ -54,7 +54,7 @@ setup(
         'django-braces>=1.2.2',
         'oauthlib==1.0.1',
         'six',
-        'django-separatedvaluesfield>=0.3.2',
+        'django-separatedvaluesfield>=0.3.3',
     ],
     zip_safe=False,
 )
