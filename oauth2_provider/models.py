@@ -17,6 +17,23 @@ from .generators import generate_client_secret, generate_client_id
 from .validators import validate_uris
 
 
+def is_allowed_uri(redirect_uri, allowed_uri):
+    parsed_allowed_uri = urlparse(allowed_uri)
+    parsed_uri = urlparse(redirect_uri)
+
+    if (parsed_allowed_uri.scheme == parsed_uri.scheme and
+            parsed_allowed_uri.netloc == parsed_uri.netloc and
+            parsed_allowed_uri.path == parsed_uri.path):
+
+        aqs_set = set(parse_qsl(parsed_allowed_uri.query))
+        uqs_set = set(parse_qsl(parsed_uri.query))
+
+        if aqs_set.issubset(uqs_set):
+            return True
+
+    return False
+
+
 @python_2_unicode_compatible
 class AbstractApplication(models.Model):
     """
@@ -83,21 +100,7 @@ class AbstractApplication(models.Model):
 
         :param uri: Url to check
         """
-        for allowed_uri in self.redirect_uris.split():
-            parsed_allowed_uri = urlparse(allowed_uri)
-            parsed_uri = urlparse(uri)
-
-            if (parsed_allowed_uri.scheme == parsed_uri.scheme and
-                    parsed_allowed_uri.netloc == parsed_uri.netloc and
-                    parsed_allowed_uri.path == parsed_uri.path):
-
-                aqs_set = set(parse_qsl(parsed_allowed_uri.query))
-                uqs_set = set(parse_qsl(parsed_uri.query))
-
-                if aqs_set.issubset(uqs_set):
-                    return True
-
-        return False
+        return any([is_allowed_uri(uri, redirect_uri) for redirect_uri in self.redirect_uris.split()])
 
     def clean(self):
         from django.core.exceptions import ValidationError
@@ -157,7 +160,7 @@ class Grant(models.Model):
         return timezone.now() >= self.expires
 
     def redirect_uri_allowed(self, uri):
-        return uri == self.redirect_uri
+        return is_allowed_uri(uri, self.redirect_uri)
 
     def __str__(self):
         return self.code
